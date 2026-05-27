@@ -106,6 +106,10 @@
 
 <script>
     const C=document.getElementById('c'),ctx=C.getContext('2d');
+    const dpr=window.devicePixelRatio||1;
+    C.width=420*dpr;C.height=580*dpr;
+    C.style.width='420px';C.style.height='580px';
+    ctx.scale(dpr,dpr);
     const W=420,H=580;
     const ROAD_LEFT=60,ROAD_RIGHT=360,ROAD_W=300;
     const LANE_W=ROAD_W/3;
@@ -113,7 +117,8 @@
 
     // State
     let state='idle';
-    let score,best=parseInt(localStorage.getItem('td_best')||'0');
+    let score,best=0;
+    try{best=parseInt(localStorage.getItem('td_best')||'0')||0;}catch(_){}
     let phase,phaseProgress,lives,fuel,nitro;
     let roadY,roadSpeed,tick;
     let keys={};
@@ -122,6 +127,7 @@
     let enemies=[],powerups=[],particles=[],explosions=[];
     let lastEnemy,lastPowerup,shakeX=0,shakeTimer=0;
     let bgScroll1=0,bgScroll2=0;
+    let _rGrads=null,_rGradsPhase=-1;
 
     const PHASE_COLORS=[
         {road:'#1a1a1a',stripe:'#ff4400',line:'#ffaa00',sky1:'#0d0010',sky2:'#200030'},
@@ -374,10 +380,16 @@
     // Road drawing
     function drawRoad(){
         const col=phaseCol();
-        // sky gradient
-        const sky=ctx.createLinearGradient(0,0,0,H*0.35);
-        sky.addColorStop(0,col.sky1);sky.addColorStop(1,col.sky2);
-        ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*0.35);
+        if(_rGradsPhase!==phase){
+            const sky=ctx.createLinearGradient(0,0,0,H*0.35);
+            sky.addColorStop(0,col.sky1);sky.addColorStop(1,col.sky2);
+            const eg=ctx.createLinearGradient(ROAD_LEFT,0,ROAD_LEFT+20,0);
+            eg.addColorStop(0,'rgba(255,68,0,0.15)');eg.addColorStop(1,'rgba(0,0,0,0)');
+            const eg2=ctx.createLinearGradient(ROAD_RIGHT,0,ROAD_RIGHT-20,0);
+            eg2.addColorStop(0,'rgba(255,68,0,0.15)');eg2.addColorStop(1,'rgba(0,0,0,0)');
+            _rGrads={sky,eg,eg2};_rGradsPhase=phase;
+        }
+        ctx.fillStyle=_rGrads.sky;ctx.fillRect(0,0,W,H*0.35);
 
         // distant city silhouette
         ctx.fillStyle='rgba(255,68,0,0.06)';
@@ -394,13 +406,9 @@
         ctx.lineTo(ROAD_RIGHT,H);ctx.lineTo(ROAD_LEFT,H);
         ctx.closePath();ctx.fill();
 
-        // road edge gradient
-        const eg=ctx.createLinearGradient(ROAD_LEFT,0,ROAD_LEFT+20,0);
-        eg.addColorStop(0,'rgba(255,68,0,0.15)');eg.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=eg;ctx.fillRect(ROAD_LEFT,0,20,H);
-        const eg2=ctx.createLinearGradient(ROAD_RIGHT,0,ROAD_RIGHT-20,0);
-        eg2.addColorStop(0,'rgba(255,68,0,0.15)');eg2.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=eg2;ctx.fillRect(ROAD_RIGHT-20,0,20,H);
+        // road edge gradient (cached per phase)
+        ctx.fillStyle=_rGrads.eg;ctx.fillRect(ROAD_LEFT,0,20,H);
+        ctx.fillStyle=_rGrads.eg2;ctx.fillRect(ROAD_RIGHT-20,0,20,H);
 
         // pavement texture lines
         ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=1;
@@ -507,7 +515,7 @@
     }
 
     function collides(ax,ay,aw,ah,bx,by,bw,bh){
-        return Math.abs(ax-bx)<(aw+bw)*0.42 && Math.abs(ay-by)<(ah+bh)*0.42;
+        return Math.abs(ax-bx)<(aw+bw)*0.44 && Math.abs(ay-by)<(ah+bh)*0.44;
     }
 
     function flashScreen(){
@@ -538,7 +546,7 @@
 
     function gameOver(){
         state='dead';
-        if(score>best){best=score;localStorage.setItem('td_best',best);}
+        if(score>best){best=score;try{localStorage.setItem('td_best',best);}catch(_){}}
         setTimeout(()=>{
             const ov=document.getElementById('overlay');
             ov.classList.remove('hidden');
@@ -742,24 +750,32 @@
     document.getElementById('btn-start').addEventListener('click',initGame);
 
     // Touch controls
-    let touchStartX=null;
+    let touchStartX=null,touchId=null;
     C.addEventListener('touchstart',e=>{
         e.preventDefault();
-        touchStartX=e.touches[0].clientX;
         if(state==='idle'||state==='dead'){initGame();return;}
-        keys['ArrowUp']=true;
+        if(touchId===null){
+            touchId=e.changedTouches[0].identifier;
+            touchStartX=e.changedTouches[0].clientX;
+            keys['ArrowUp']=true;
+        }
     },{passive:false});
     C.addEventListener('touchmove',e=>{
         e.preventDefault();
-        if(!touchStartX)return;
-        const dx=e.touches[0].clientX-touchStartX;
+        if(touchId===null)return;
+        const touch=Array.from(e.touches).find(t=>t.identifier===touchId);
+        if(!touch)return;
+        const dx=touch.clientX-touchStartX;
         keys['ArrowLeft']=dx<-20;
         keys['ArrowRight']=dx>20;
     },{passive:false});
     C.addEventListener('touchend',e=>{
         e.preventDefault();
-        keys['ArrowLeft']=keys['ArrowRight']=keys['ArrowUp']=false;
-        touchStartX=null;
+        const ended=Array.from(e.changedTouches).find(t=>t.identifier===touchId);
+        if(ended){
+            keys['ArrowLeft']=keys['ArrowRight']=keys['ArrowUp']=false;
+            touchStartX=null;touchId=null;
+        }
     },{passive:false});
 </script>
 </body>
