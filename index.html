@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="description" content="Turbo Drift — jogo de corrida arcade em HTML5 Canvas">
+  <title>TURBO DRIFT — Road Fighter</title>
+
+  <!-- Performance: font preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="wrap">
+  <canvas id="c" width="420" height="580"></canvas>
+
+  <div id="phase-flash" aria-hidden="true"></div>
+  <div id="nitro-fx"    aria-hidden="true"></div>
+
+  <!-- HUD -->
+  <div id="hud" role="status" aria-live="polite" aria-label="Painel do jogo">
+    <div class="blk">
+      <span class="hud-label">PONTOS</span>
+      <span class="val" id="h-score">0</span>
+    </div>
+    <div class="blk">
+      <span class="hud-label">VELOCIDADE</span>
+      <div class="bar-wrap" id="speed-bar-wrap">
+        <div id="speed-bar"></div>
+      </div>
+    </div>
+    <div class="blk">
+      <span class="hud-label">COMBUSTÍVEL</span>
+      <div class="bar-wrap" id="fuel-bar-wrap">
+        <div id="fuel-bar"></div>
+      </div>
+    </div>
+    <div class="blk">
+      <span class="hud-label">FASE</span>
+      <span class="val" id="h-phase">1</span>
+    </div>
+    <div class="blk">
+      <span class="hud-label">VIDAS</span>
+      <span class="val" id="h-lives">❤ ❤ ❤</span>
+    </div>
+  </div>
+
+  <!-- Overlay (menu / game over) -->
+  <div id="overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+    <div class="ovr-logo" id="overlay-title">TURBO</div>
+    <div class="ovr-logo ovr-logo--sub">DRIFT</div>
+    <div class="ovr-sub">road fighter — edição especial</div>
+    <div class="ovr-info" id="ovr-info">← → mover &nbsp;|&nbsp; ↑ acelerar &nbsp;|&nbsp; ↓ frear &nbsp;|&nbsp; Z nitro</div>
+    <div class="ovr-stat" id="ovr-stat" style="display:none"></div>
+    <div class="ovr-best" id="ovr-best" style="display:none"></div>
+    <button class="btn" id="btn-start">Acelerar</button>
+    <div class="tip" id="ovr-tip">[ setas ] ou [ wasd ] para controlar</div>
+  </div>
+</div>
+
+<script src="game.js" defer></script>
+</body>
+</html>
