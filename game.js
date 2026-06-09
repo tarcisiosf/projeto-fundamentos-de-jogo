@@ -20,7 +20,7 @@ const LANES = [
 
 /* ─── State ──────────────────────────────────────────────────── */
 let state = 'idle';
-let score, best = 0;
+let score = 0, best = 0;
 try { best = parseInt(localStorage.getItem('td_best') || '0') || 0; } catch (_) {}
 
 let phase, phaseProgress, lives, fuel, nitro;
@@ -460,18 +460,16 @@ function drawRoad() {
   bgScroll2 = (bgScroll2 + roadSpeed) % 160;
   ctx.strokeStyle = '#ff440044';
   ctx.lineWidth = 2;
+  function drawLampPost(x, y) {
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 60); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,200,100,0.6)';
+    ctx.shadowBlur = 15; ctx.shadowColor = '#ffaa00';
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+  }
   for (let y = -160 + bgScroll2; y < H + 160; y += 160) {
-    ctx.beginPath(); ctx.moveTo(45, y); ctx.lineTo(45, y + 60); ctx.stroke();
-    ctx.fillStyle = 'rgba(255,200,100,0.6)';
-    ctx.shadowBlur = 15; ctx.shadowColor = '#ffaa00';
-    ctx.beginPath(); ctx.arc(45, y, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
-
-    ctx.beginPath(); ctx.moveTo(375, y); ctx.lineTo(375, y + 60); ctx.stroke();
-    ctx.fillStyle = 'rgba(255,200,100,0.6)';
-    ctx.shadowBlur = 15; ctx.shadowColor = '#ffaa00';
-    ctx.beginPath(); ctx.arc(375, y, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
+    drawLampPost(45, y);
+    drawLampPost(375, y);
   }
 }
 
