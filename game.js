@@ -569,7 +569,8 @@ function initGame() {
   shakeX = 0; shakeTimer = 0;
 
   document.getElementById('overlay').classList.add('hidden');
-  document.getElementById('mobile-controls').classList.add('game-active');
+  document.getElementById('mc-nitro').classList.add('game-active');
+  document.getElementById('mc-joystick').classList.add('game-active');
   updateLives();
   document.getElementById('h-phase').textContent = phase;
   document.getElementById('h-score').textContent = '0';
@@ -597,7 +598,8 @@ function gameOver() {
       : '[ espaço ] para recomeçar';
     document.querySelector('.ovr-logo').textContent = 'GAME';
     document.querySelectorAll('.ovr-logo')[1].textContent = 'OVER';
-    document.getElementById('mobile-controls').classList.remove('game-active');
+    document.getElementById('mc-nitro').classList.remove('game-active');
+    document.getElementById('mc-joystick').classList.remove('game-active');
   }, 600);
 }
 
@@ -821,25 +823,60 @@ if (isTouchDevice) {
     'toque na tela ou aperte Acelerar para jogar';
 }
 
-function bindMobileBtn(id, key) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.addEventListener('pointerdown', e => {
-    e.preventDefault();
-    keys[key] = true;
-    el.classList.add('pressed');
-    try { el.setPointerCapture(e.pointerId); } catch (_) {}
-  }, { passive: false });
-  const release = () => {
-    keys[key] = false;
-    el.classList.remove('pressed');
-  };
-  el.addEventListener('pointerup',     release);
-  el.addEventListener('pointercancel', release);
+/* botão nitro */
+const nitroBtn = document.getElementById('mc-nitro');
+nitroBtn.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  keys['Z'] = true;
+  nitroBtn.classList.add('pressed');
+  try { nitroBtn.setPointerCapture(e.pointerId); } catch (_) {}
+}, { passive: false });
+const releaseNitro = () => { keys['Z'] = false; nitroBtn.classList.remove('pressed'); };
+nitroBtn.addEventListener('pointerup',     releaseNitro);
+nitroBtn.addEventListener('pointercancel', releaseNitro);
+
+/* joystick analógico — suporta diagonal (ex: cima + direita simultâneo) */
+const joyBase  = document.getElementById('mc-joystick');
+const joyStick = document.getElementById('mc-stick');
+const JOY_R    = 32; // raio máximo de deslocamento do thumb
+const JOY_DEAD = 11; // zona morta central
+let   joyPtr   = null;
+
+function updateJoy(e) {
+  const r  = joyBase.getBoundingClientRect();
+  const dx = e.clientX - (r.left + r.width  / 2);
+  const dy = e.clientY - (r.top  + r.height / 2);
+  const d  = Math.sqrt(dx * dx + dy * dy);
+  const s  = d > JOY_R ? JOY_R / d : 1;
+  joyStick.style.transform =
+    `translate(calc(-50% + ${dx * s}px), calc(-50% + ${dy * s}px))`;
+  keys['ArrowLeft']  = dx < -JOY_DEAD;
+  keys['ArrowRight'] = dx >  JOY_DEAD;
+  keys['ArrowUp']    = dy < -JOY_DEAD;
+  keys['ArrowDown']  = dy >  JOY_DEAD;
 }
 
-bindMobileBtn('dpad-up',    'ArrowUp');
-bindMobileBtn('dpad-down',  'ArrowDown');
-bindMobileBtn('dpad-left',  'ArrowLeft');
-bindMobileBtn('dpad-right', 'ArrowRight');
-bindMobileBtn('mc-nitro',   'Z');
+joyBase.addEventListener('pointerdown', e => {
+  if (joyPtr !== null) return;
+  e.preventDefault();
+  joyPtr = e.pointerId;
+  joyBase.setPointerCapture(e.pointerId);
+  joyStick.style.transition = 'none';
+  updateJoy(e);
+}, { passive: false });
+
+joyBase.addEventListener('pointermove', e => {
+  if (e.pointerId !== joyPtr) return;
+  e.preventDefault();
+  updateJoy(e);
+}, { passive: false });
+
+const resetJoy = e => {
+  if (e.pointerId !== joyPtr) return;
+  joyPtr = null;
+  joyStick.style.transition = 'transform 0.15s ease-out';
+  joyStick.style.transform  = 'translate(-50%, -50%)';
+  keys['ArrowUp'] = keys['ArrowDown'] = keys['ArrowLeft'] = keys['ArrowRight'] = false;
+};
+joyBase.addEventListener('pointerup',     resetJoy);
+joyBase.addEventListener('pointercancel', resetJoy);
