@@ -26,6 +26,7 @@ try { best = parseInt(localStorage.getItem('td_best') || '0') || 0; } catch (_) 
 let phase, phaseProgress, lives, fuel, nitro;
 let roadY, roadSpeed, tick;
 let keys = {};
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 let playerX, playerY;
 const playerW = 38, playerH = 68;
 let playerHurt = 0, playerNitro = 0;
@@ -568,6 +569,7 @@ function initGame() {
   shakeX = 0; shakeTimer = 0;
 
   document.getElementById('overlay').classList.add('hidden');
+  document.getElementById('mobile-controls').classList.add('game-active');
   updateLives();
   document.getElementById('h-phase').textContent = phase;
   document.getElementById('h-score').textContent = '0';
@@ -576,6 +578,7 @@ function initGame() {
 
 function gameOver() {
   state = 'dead';
+  keys = {};
   if (score > best) {
     best = score;
     try { localStorage.setItem('td_best', best); } catch (_) {}
@@ -589,9 +592,12 @@ function gameOver() {
     document.getElementById('ovr-best').style.display = 'block';
     document.getElementById('ovr-best').textContent = 'RECORDE: ' + best.toLocaleString();
     document.getElementById('btn-start').textContent = 'Jogar Novamente';
-    document.getElementById('ovr-tip').textContent = '[ espaço ] para recomeçar';
+    document.getElementById('ovr-tip').textContent = isTouchDevice
+      ? 'toque na tela para recomeçar'
+      : '[ espaço ] para recomeçar';
     document.querySelector('.ovr-logo').textContent = 'GAME';
     document.querySelectorAll('.ovr-logo')[1].textContent = 'OVER';
+    document.getElementById('mobile-controls').classList.remove('game-active');
   }, 600);
 }
 
@@ -801,35 +807,39 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { keys[e.key] = false; });
 document.getElementById('btn-start').addEventListener('click', initGame);
 
-/* ─── Touch input ────────────────────────────────────────────── */
-let touchStartX = null, touchId = null;
-
+/* ─── Touch input — toque na tela para iniciar/reiniciar ─────── */
 C.addEventListener('touchstart', e => {
   e.preventDefault();
-  if (state === 'idle' || state === 'dead') { initGame(); return; }
-  if (touchId === null) {
-    touchId     = e.changedTouches[0].identifier;
-    touchStartX = e.changedTouches[0].clientX;
-    keys['ArrowUp'] = true;
-  }
+  if (state === 'idle' || state === 'dead') initGame();
 }, { passive: false });
 
-C.addEventListener('touchmove', e => {
-  e.preventDefault();
-  if (touchId === null) return;
-  const touch = Array.from(e.touches).find(t => t.identifier === touchId);
-  if (!touch) return;
-  const dx = touch.clientX - touchStartX;
-  keys['ArrowLeft']  = dx < -20;
-  keys['ArrowRight'] = dx >  20;
-}, { passive: false });
+/* ─── Controles virtuais mobile ──────────────────────────────── */
+if (isTouchDevice) {
+  document.getElementById('ovr-info').innerHTML =
+    'joystick para mover &nbsp;|&nbsp; N para nitro';
+  document.getElementById('ovr-tip').textContent =
+    'toque na tela ou aperte Acelerar para jogar';
+}
 
-C.addEventListener('touchend', e => {
-  e.preventDefault();
-  const ended = Array.from(e.changedTouches).find(t => t.identifier === touchId);
-  if (ended) {
-    keys['ArrowLeft'] = keys['ArrowRight'] = keys['ArrowUp'] = false;
-    touchStartX = null;
-    touchId     = null;
-  }
-}, { passive: false });
+function bindMobileBtn(id, key) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    keys[key] = true;
+    el.classList.add('pressed');
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+  }, { passive: false });
+  const release = () => {
+    keys[key] = false;
+    el.classList.remove('pressed');
+  };
+  el.addEventListener('pointerup',     release);
+  el.addEventListener('pointercancel', release);
+}
+
+bindMobileBtn('dpad-up',    'ArrowUp');
+bindMobileBtn('dpad-down',  'ArrowDown');
+bindMobileBtn('dpad-left',  'ArrowLeft');
+bindMobileBtn('dpad-right', 'ArrowRight');
+bindMobileBtn('mc-nitro',   'Z');

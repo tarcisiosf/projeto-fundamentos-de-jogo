@@ -254,6 +254,110 @@ canvas {
   }
 }
 
+/* ─── Mobile virtual controls ────────────────────────────────── */
+#mobile-controls {
+  display: none; /* mostrado via .game-active apenas em dispositivos touch */
+  position: absolute;
+  top: 458px;    /* cobre os 122px inferiores do canvas (580 - 122) */
+  left: 0;
+  right: 0;
+  height: 122px;
+  background: rgba(0, 0, 0, 0.75);
+  border-top: 1px solid rgba(255, 68, 0, 0.35);
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 22px;
+  z-index: 8;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  #mobile-controls.game-active {
+    display: flex;
+  }
+}
+
+/* botão nitro */
+.mc-nitro {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(0, 170, 255, 0.12);
+  border: 2px solid #00ccff;
+  color: #00ccff;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background var(--t-fast), box-shadow var(--t-fast);
+}
+
+.mc-nitro.pressed {
+  background: rgba(0, 200, 255, 0.35);
+  box-shadow: 0 0 24px #00ccff99;
+}
+
+.mc-n {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.mc-label {
+  font-size: 7px;
+  letter-spacing: 2px;
+}
+
+/* d-pad */
+.mc-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 34px);
+  grid-template-rows: repeat(3, 34px);
+  gap: 4px;
+  touch-action: none;
+}
+
+.dpad-btn {
+  background: rgba(255, 68, 0, 0.12);
+  border: 2px solid var(--c-accent);
+  color: var(--c-accent);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: background var(--t-fast), box-shadow var(--t-fast);
+}
+
+.dpad-btn.pressed {
+  background: rgba(255, 68, 0, 0.5);
+  box-shadow: 0 0 10px var(--c-accent);
+}
+
+.dpad-center {
+  border-radius: 50%;
+  background: rgba(255, 68, 0, 0.06);
+  border: 1px solid rgba(255, 68, 0, 0.25);
+  pointer-events: none;
+}
+
+.dpad-up    { grid-column: 2; grid-row: 1; }
+.dpad-left  { grid-column: 1; grid-row: 2; }
+.dpad-center{ grid-column: 2; grid-row: 2; }
+.dpad-right { grid-column: 3; grid-row: 2; }
+.dpad-down  { grid-column: 2; grid-row: 3; }
+
 /* ─── Reduced motion ─────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

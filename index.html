@@ -59,6 +59,21 @@
     <button class="btn" id="btn-start">Acelerar</button>
     <div class="tip" id="ovr-tip">[ setas ] ou [ wasd ] para controlar</div>
   </div>
+
+  <!-- Controles virtuais — visíveis somente em toque, somente durante o jogo -->
+  <div id="mobile-controls" aria-label="Controles móveis">
+    <button class="mc-nitro" id="mc-nitro" aria-label="Nitro">
+      <span class="mc-n">N</span>
+      <span class="mc-label">NITRO</span>
+    </button>
+    <div class="mc-dpad" aria-label="Direcional">
+      <button class="dpad-btn dpad-up"    id="dpad-up"    aria-label="Cima">▲</button>
+      <button class="dpad-btn dpad-left"  id="dpad-left"  aria-label="Esquerda">◀</button>
+      <div    class="dpad-center"                         aria-hidden="true"></div>
+      <button class="dpad-btn dpad-right" id="dpad-right" aria-label="Direita">▶</button>
+      <button class="dpad-btn dpad-down"  id="dpad-down"  aria-label="Baixo">▼</button>
+    </div>
+  </div>
 </div>
 
 <script src="game.js" defer></script>
